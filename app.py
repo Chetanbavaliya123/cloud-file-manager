@@ -1,16 +1,9 @@
 """
 Cloud File Manager
 ------------------
-A production-ready college assignment project for Cloud Computing.
-Demonstrates:
-  - Compute: Render Web Service (PaaS)
-  - Storage: Supabase Storage (Private Bucket via Service-Role Key)
-  - Access Control: Signed URLs (time-limited access without public exposure)
-  - Resource Management: 10 MB request limit enforcement, error boundaries
-
-Author: Chetan Bavaliya
-College: GMIU
-Subject: Cloud Computing
+A modern, high-performance cloud storage web application.
+Stateless compute hosted on Render PaaS; persistent binary objects managed on Supabase Storage.
+Features private bucket access control, ephemeral signed download URLs, and 10 MB upload limits.
 """
 
 import os

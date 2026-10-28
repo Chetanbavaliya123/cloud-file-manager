@@ -1,71 +1,103 @@
 # ☁️ Cloud File Manager
 
-> A production-ready, cloud-native file storage application developed for the **Cloud Computing (CC)** college assignment. Demonstrates multi-service cloud architecture integrating modern Compute (PaaS) and Managed Object Storage (BaaS) with zero infrastructure cost ($0).
+> A modern, high-performance cloud storage web application built with Python, Flask, and Supabase Object Storage, deployed on Render.
 
-[![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg?logo=python)](https://python.org)
-[![Framework](https://img.shields.io/badge/Framework-Flask%203.x-emerald.svg?logo=flask)](https://flask.palletsprojects.com/)
-[![Compute](https://img.shields.io/badge/Compute-Render%20Web%20Service-46E3B7.svg?logo=render)](https://render.com)
-[![Storage](https://img.shields.io/badge/Storage-Supabase%20Storage-3ECF8E.svg?logo=supabase)](https://supabase.com)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-cloud--file--manager-059669?style=for-the-badge&logo=render&logoColor=white)](https://cloud-file-manager-alml.onrender.com)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Chetanbavaliya123/cloud-file-manager)
+
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB.svg?logo=python&logoColor=white)](https://python.org)
+[![Framework](https://img.shields.io/badge/Framework-Flask%203.x-000000.svg?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![Compute](https://img.shields.io/badge/Compute-Render%20PaaS-46E3B7.svg?logo=render&logoColor=white)](https://render.com)
+[![Storage](https://img.shields.io/badge/Storage-Supabase%20Storage-3ECF8E.svg?logo=supabase&logoColor=white)](https://supabase.com)
+[![Server](https://img.shields.io/badge/WSGI-Gunicorn-499848.svg?logo=gunicorn&logoColor=white)](https://gunicorn.org/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Cost](https://img.shields.io/badge/Cost-%240.00%20(Free%20Tier)-brightgreen.svg)]()
+
+---
+
+## 🌐 Live Application
+
+The production application is live and accessible over the internet:  
+👉 **[https://cloud-file-manager-alml.onrender.com](https://cloud-file-manager-alml.onrender.com)**
+
+---
+
+## 📖 Overview
+
+**Cloud File Manager** is a production-ready, cloud-native file storage application designed around modern multi-cloud principles. It completely decouples **Stateless Compute** from **Persistent Object Storage**:
+
+- **Compute Tier**: Hosted on **Render** (Platform-as-a-Service) using a containerized Gunicorn WSGI web server running Python 3.12.
+- **Storage Tier**: Persistent binary files are stored in an S3-compatible private bucket on **Supabase Storage**.
+- **Access Control**: Bucket is private-by-default; files are downloaded directly from Supabase via on-demand, time-limited cryptographic signed URLs (3600-second expiration).
+- **Zero Local Disk Dependency**: Container restarts or redeployments cause zero file loss because no files are persisted on the local container disk.
 
 ---
 
 ## 🏛️ System Architecture
 
-The application decouples presentation/application compute from persistent binary object storage:
-
 ```mermaid
 graph TD
-    User([🌐 End-User Browser]) -->|HTTPS Requests: Port 443| RenderEdge[Render Cloud Edge & SSL Termination]
-    RenderEdge -->|Reverse Proxy| Gunicorn[Gunicorn WSGI Server]
-    Gunicorn -->|WSGI Application| FlaskApp[Flask Application Engine]
+    Client([🌐 Client Web Browser]) -->|HTTPS :443| Edge[Render Edge Router & SSL Termination]
+    Edge -->|Reverse Proxy| Gunicorn[Gunicorn WSGI Server]
+    Gunicorn -->|WSGI Invocation| FlaskApp[Flask Application Engine]
 
-    subgraph "Render.com Cloud (Compute - PaaS)"
+    subgraph "Render PaaS (Compute Cloud)"
         Gunicorn
         FlaskApp
-        Config[Env Secrets: SUPABASE_URL, SUPABASE_KEY]
-        Config -.->|Injects At Runtime| FlaskApp
+        Env[Injected Environment Variables: SUPABASE_KEY, etc.]
+        Env -.->|Runtime Injection| FlaskApp
     end
 
-    subgraph "Supabase Cloud (Storage - BaaS)"
-        SupaAPI[Supabase Storage REST API]
-        PrivateBucket[("Private S3-Compatible Bucket: 'uploads'")]
-        SupaAPI --- PrivateBucket
+    subgraph "Supabase Cloud (Object Storage)"
+        StorageAPI[Supabase Storage REST Gateway]
+        AuthGuard[Service-Role Authentication Barrier]
+        PrivateBucket[("Private S3 Bucket: 'uploads'")]
+        StorageAPI --> AuthGuard
+        AuthGuard --> PrivateBucket
     end
 
-    FlaskApp -->|1. File Upload / Stream| SupaAPI
-    FlaskApp -->|2. Delete Request / Path| SupaAPI
-    FlaskApp -->|3. Query Bucket / List Objects| SupaAPI
-    SupaAPI -->|4. Return 1-Hour Time-Limited Signed URL| FlaskApp
-    FlaskApp -->|5. Render HTML with Signed Download URLs| User
-    User -->|6. Direct Download via Signed URL| SupaAPI
+    FlaskApp -->|Upload / Delete / List Objects| StorageAPI
+    StorageAPI -->|Ephemeral Signed Download URL: 3600s TTL| FlaskApp
+    FlaskApp -->|Rendered UI with Signed Links| Client
+    Client -->|Direct Stream Download via Signed URL| StorageAPI
 ```
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-- **Decoupled Cloud Architecture**: Web tier hosted on **Render** (Platform-as-a-Service), persistent object storage on **Supabase** (Storage as a Service).
-- **Private Bucket Security**: Bucket is configured strictly as `private`. No public read access is enabled.
-- **Time-Limited Signed URLs**: Files are downloaded via cryptographically signed URLs generated on-demand with a **3600-second (1-hour)** expiration window.
-- **Resource Limits Enforcement**: Strict **10 MB per-file upload constraint** enforced at both application middleware level (`MAX_CONTENT_LENGTH`) and client-side dropzone validation.
-- **Zero Stack Trace Exposure**: All storage operations, API errors, and size limit violations are caught by friendly error-handling boundaries and displayed as user-facing alerts.
-- **Health Check Probe**: Dedicated `/health` endpoint returning JSON metadata for monitoring and zero-downtime health probes.
-- **Modern Responsive UI**: Clean interface styled with emerald green accents, drag-and-drop file upload, file type icons, and live cloud status banner.
+- **Decoupled Cloud Architecture**: Stateless web service communicating with managed S3-compatible cloud object storage.
+- **Private Bucket Security**: Bucket is configured strictly as `private`. Direct public access is rejected with `403 Forbidden`.
+- **Time-Limited Signed URLs**: File downloads utilize HMAC-SHA256 signed URLs valid for **3600 seconds (1 hour)**, offloading download bandwidth directly to Supabase's high-speed CDN.
+- **Upload Size Protection**: Strict **10 MB per-file upload limit** enforced at both application middleware level (`MAX_CONTENT_LENGTH`) and client-side dropzone validation.
+- **Interactive Deletion Modal**: Clean, in-page confirmation modal with instant visual feedback, eliminating browser popup blockers and JavaScript escaping issues.
+- **Health Check Probe**: Dedicated `/health` endpoint returning JSON status metadata for monitoring and uptime probes.
+- **Modern Responsive UI**: Clean interface styled with emerald green accents, drag-and-drop file upload, file type icons, and live status bar.
+- **Zero Stack-Trace Exposure**: Comprehensive error-handling boundaries intercept network and storage errors, presenting friendly alert banners without exposing internal stack traces.
 
 ---
 
-## 📋 Environment Variables
+## 🛠️ Tech Stack
 
-| Variable | Description | Required | Default / Example |
-| :--- | :--- | :---: | :--- |
-| `SUPABASE_URL` | Your Supabase Project API URL | **Yes** | `https://xyzproject.supabase.co` |
-| `SUPABASE_KEY` | Supabase `service_role` secret key for server-side private bucket access | **Yes** | `eyJhbGciOi...` *(Secret)* |
-| `BUCKET_NAME` | Supabase Storage bucket name | No | `uploads` |
-| `PORT` | Local web server port | No | `5000` |
-| `SECRET_KEY` | Flask secret key for session and flash security | No | Auto-generated in production |
-| `PYTHON_VERSION` | Python runtime version on Render | No | `3.12.3` |
+| Component | Technology | Description |
+| :--- | :--- | :--- |
+| **Backend Framework** | [Flask 3.1](https://flask.palletsprojects.com/) | Lightweight WSGI web application framework |
+| **WSGI Server** | [Gunicorn 26.x](https://gunicorn.org/) | Production-grade WSGI HTTP server for UNIX |
+| **Storage SDK** | [supabase-py 2.x](https://github.com/supabase-community/supabase-py) | Official Python client library for Supabase Storage |
+| **Compute Hosting** | [Render.com](https://render.com) | Fully managed Cloud PaaS with automated continuous deployment |
+| **Object Storage** | [Supabase Storage](https://supabase.com/storage) | S3-compatible managed binary object storage |
+| **Version Control & CI/CD**| [GitHub](https://github.com) | Central repository with automated webhook deployments to Render |
+| **Automated Testing** | [Pytest 9.x](https://pytest.org) | Unit testing suite with mock doubles |
+
+---
+
+## 📡 API Endpoints
+
+| Method | Endpoint | Description | Response |
+| :---: | :--- | :--- | :--- |
+| `GET` | `/` | Web dashboard: lists files, computes sizes, and builds signed download links | HTML (`index.html`) |
+| `POST` | `/upload` | Uploads file to Supabase Storage with MIME detection and upsert enabled | `302 Redirect` to `/` |
+| `GET` | `/delete/<path:name>` | Deletes the specified file from Supabase Storage | `302 Redirect` to `/` |
+| `GET` | `/health` | Health check probe for uptime monitoring and deployment status | `200 OK` JSON |
 
 ---
 
@@ -74,7 +106,7 @@ graph TD
 ### Prerequisites
 - Python 3.10+ (Python 3.12 recommended)
 - Git
-- A free Supabase account ([supabase.com](https://supabase.com))
+- A Supabase account ([supabase.com](https://supabase.com))
 
 ### 1. Clone Repository
 ```bash
@@ -98,7 +130,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Configure Environment
+### 4. Configure Environment Variables
 ```bash
 cp .env.example .env
 ```
@@ -107,6 +139,8 @@ Edit `.env` and fill in your Supabase credentials:
 SUPABASE_URL=https://your-project-id.supabase.co
 SUPABASE_KEY=your-supabase-service-role-secret-key
 BUCKET_NAME=uploads
+PORT=5000
+SECRET_KEY=your-custom-secret-key
 ```
 
 ### 5. Run Automated Tests
@@ -118,62 +152,20 @@ pytest -v
 ```bash
 python app.py
 ```
-Open [http://localhost:5000](http://localhost:5000) in your web browser.
+Open **[http://localhost:5000](http://localhost:5000)** in your browser.
 
 ---
 
-## ☁️ Deployment Instructions (Render.com)
+## ⚙️ Environment Variables Reference
 
-1. **Push Code to GitHub**:
-   Ensure this project is pushed to a public GitHub repository.
-
-2. **Connect to Render**:
-   - Log in to [Render.com](https://render.com) using your GitHub account.
-   - Click **New +** and select **Web Service**.
-   - Select your `cloud-file-manager` repository.
-
-3. **Configure Settings**:
-   - **Name**: `cloud-file-manager`
-   - **Region**: `Singapore` (or closest region)
-   - **Branch**: `main`
-   - **Runtime**: `Python 3`
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `gunicorn app:app`
-   - **Instance Type**: `Free`
-
-4. **Add Environment Variables**:
-   Under the **Environment Variables** section, add:
-   - `SUPABASE_URL` = `<your-supabase-project-url>`
-   - `SUPABASE_KEY` = `<your-supabase-service-role-key>`
-   - `BUCKET_NAME` = `uploads`
-   - `PYTHON_VERSION` = `3.12.3`
-
-5. **Deploy**:
-   Click **Create Web Service**. Render will pull the code, install dependencies, and launch Gunicorn. Your app will be live at `https://<service-name>.onrender.com`.
-
----
-
-## ⚠️ Free-Tier Limitations & Cloud Trade-offs
-
-| Cloud Resource | Free-Tier Quota / Limitation | Impact / Behavior | Mitigation Strategy |
-| :--- | :--- | :--- | :--- |
-| **Render Web Service** | Spins down after **~15 minutes** of inactivity | First request after idle takes **30–50 seconds** ("cold start") | Set up a periodic uptime ping (e.g. UptimeRobot) to `/health` or accept cold starts. |
-| **Render Bandwidth** | 100 GB / month outbound bandwidth | Sufficient for testing and academic demos | Enforce 10 MB upload limits to prevent rapid bandwidth consumption. |
-| **Supabase Storage** | **1 GB** total storage limit | Max 100 files of 10 MB each | Private bucket access control; periodic deletion of test files. |
-| **Supabase Inactivity** | Free projects pause after **7 days** without dashboard or API activity | API returns connection errors if paused | Logging into Supabase dashboard resumes the project instantly. |
-| **Render Ephemeral Disk** | File system is discarded on each deploy/restart | Any local file written to disk is erased | **Architecture Solution**: All binary files stored in Supabase, keeping Flask 100% stateless! |
-
----
-
-## 💰 Cost Analysis
-
-| Component | Provider | Tier | Monthly Cost |
-| :--- | :--- | :--- | :---: |
-| Compute (Web Service) | Render.com | Free Plan | $0.00 |
-| Object Storage (1 GB) | Supabase | Free Tier | $0.00 |
-| SSL / TLS Certificates | Let's Encrypt via Render | Managed Free | $0.00 |
-| Git Hosting & CI/CD | GitHub | Free Public Repos | $0.00 |
-| **Total** | | | **$0.00 / month** |
+| Variable | Description | Required | Example |
+| :--- | :--- | :---: | :--- |
+| `SUPABASE_URL` | Supabase Project API URL | **Yes** | `https://xyzproject.supabase.co` |
+| `SUPABASE_KEY` | Supabase `service_role` secret key for server-side private bucket access | **Yes** | `eyJhbGciOi...` *(Secret)* |
+| `BUCKET_NAME` | Supabase Storage bucket name | No | `uploads` (Default) |
+| `PORT` | Local web server port | No | `5000` (Default) |
+| `SECRET_KEY` | Flask session secret key | No | Auto-generated in production |
+| `PYTHON_VERSION` | Python runtime version on Render | No | `3.12.3` |
 
 ---
 
@@ -181,27 +173,20 @@ Open [http://localhost:5000](http://localhost:5000) in your web browser.
 
 ```text
 cloud-file-manager/
-├── .env.example              # Environment variables template
-├── .gitignore                # Git ignore patterns (protects secrets & venv)
-├── app.py                    # Core Flask application and Supabase client
-├── pytest.ini                # Pytest configuration
-├── render.yaml               # Render Infrastructure-as-Code Blueprint
-├── requirements.txt          # Python dependencies
+├── .env.example          # Environment variables template
+├── .gitignore            # Protects secrets (.env), caches, and virtualenvs
+├── app.py                # Core Flask application and Supabase client
+├── pytest.ini            # Pytest configuration
+├── render.yaml           # Render Infrastructure-as-Code Blueprint
+├── requirements.txt      # Production dependencies
 ├── templates/
-│   └── index.html            # Responsive UI template with inline green styling
-├── tests/
-│   └── test_app.py           # Unit tests with Supabase mocking
-└── docs/
-    ├── DEPLOYMENT_DETAILS.md # Technical specification of deployment
-    ├── REPORT.md             # Formal college assignment academic report
-    ├── SCREENSHOT_CHECKLIST.md# Screenshot capture guide for submission
-    └── REPORT.pdf            # Compiled assignment PDF document
+│   └── index.html        # Responsive UI with emerald accents and custom modal
+└── tests/
+    └── test_app.py       # Automated unit tests with Supabase mocking
 ```
 
 ---
 
-## 🎓 Academic Submission Details
-- **Student Name**: Chetan Bavaliya
-- **Enrollment / ID**: CC Assignment
-- **University**: GMIU
-- **Subject**: Cloud Computing (7th Semester)
+## 📄 License
+
+This project is open-source and available under the [MIT License](LICENSE).
