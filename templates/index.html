@@ -286,6 +286,10 @@
             transition: all 0.2s ease;
         }
 
+        .btn svg, .btn path {
+            pointer-events: none;
+        }
+
         .btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
@@ -672,10 +676,10 @@
                                                 Download
                                             </a>
                                         {% endif %}
-                                        <a href="{{ url_for('delete_file', name=f.encoded_name) }}" class="btn btn-sm btn-delete" onclick="return confirmDelete(event, '{{ f.name|e }}', '{{ url_for('delete_file', name=f.encoded_name) }}');" title="Permanently delete file">
+                                        <button type="button" class="btn btn-sm btn-delete" data-filename="{{ f.name }}" data-url="{{ url_for('delete_file', name=f.encoded_name) }}" onclick="openDeleteModal(this)" title="Permanently delete file">
                                             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                             Delete
-                                        </a>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -725,21 +729,21 @@
         const selectedFileSize = document.getElementById('selectedFileSize');
         const uploadBtn = document.getElementById('uploadBtn');
 
-        function confirmDelete(e, filename, deleteUrl) {
-            if (e) e.preventDefault();
+        function openDeleteModal(btn) {
+            const filename = btn.getAttribute('data-filename');
+            const deleteUrl = btn.getAttribute('data-url');
             document.getElementById('modalFileName').textContent = filename;
             document.getElementById('modalConfirmDeleteBtn').href = deleteUrl;
             document.getElementById('deleteModal').style.display = 'flex';
-            return false;
         }
 
         function closeDeleteModal() {
             document.getElementById('deleteModal').style.display = 'none';
         }
 
-        function handleDeleteClick(btn) {
-            btn.innerHTML = '⏳ Deleting...';
-            btn.style.pointerEvents = 'none';
+        function handleDeleteClick(link) {
+            link.innerHTML = '⏳ Deleting...';
+            link.style.pointerEvents = 'none';
         }
 
         document.getElementById('deleteModal').addEventListener('click', function(e) {
