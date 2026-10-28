@@ -305,6 +305,32 @@ def delete_file(name):
     return redirect(url_for("index"))
 
 
+@app.route("/view/<path:name>", methods=["GET"])
+def view_file(name):
+    """
+    Generates an on-demand signed URL and redirects to view/preview the file.
+    """
+    supabase = get_supabase_client()
+    if not supabase:
+        flash("Cannot view: Supabase credentials are not configured.", "error")
+        return redirect(url_for("index"))
+
+    decoded_name = unquote(name).strip().lstrip("/")
+
+    try:
+        bucket = supabase.storage.from_(BUCKET_NAME)
+        signed_res = bucket.create_signed_url(decoded_name, 3600)
+        view_url = extract_signed_url(signed_res)
+        if view_url:
+            return redirect(view_url)
+        flash(f"Could not generate preview link for '{decoded_name}'.", "error")
+    except Exception as exc:
+        logger.error(f"Failed to generate preview for '{decoded_name}': {exc}", exc_info=True)
+        flash(f"Error viewing '{decoded_name}': {str(exc)}", "error")
+
+    return redirect(url_for("index"))
+
+
 if __name__ == "__main__":
     # Local development server only
     # In production (Render), Gunicorn is used: gunicorn app:app

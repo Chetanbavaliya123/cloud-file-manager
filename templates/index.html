@@ -313,6 +313,18 @@
             border-radius: 6px;
         }
 
+        .btn-view {
+            background-color: #eff6ff;
+            color: #2563eb;
+            border: 1px solid #bfdbfe;
+        }
+
+        .btn-view:hover {
+            background-color: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+        }
+
         .btn-download {
             background-color: var(--primary-light);
             color: var(--primary);
@@ -671,7 +683,11 @@
                                 <td>
                                     <div class="actions-cell">
                                         {% if f.download_url %}
-                                            <a href="{{ f.download_url }}" class="btn btn-sm btn-download" target="_blank" rel="noopener noreferrer" title="Download via Signed URL (valid 1 hr)">
+                                            <a href="{{ f.download_url }}" class="btn btn-sm btn-view" target="_blank" rel="noopener noreferrer" title="View / Preview file in new tab">
+                                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                View
+                                            </a>
+                                            <a href="{{ f.download_url }}" class="btn btn-sm btn-download" download="{{ f.name }}" target="_blank" rel="noopener noreferrer" title="Download file to computer">
                                                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                                 Download
                                             </a>

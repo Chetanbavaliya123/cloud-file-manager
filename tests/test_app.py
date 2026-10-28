@@ -206,3 +206,19 @@ def test_upload_file_too_large(client):
         assert "exceeds the maximum allowed size of 10 MB" in html
 
 
+def test_view_file_redirect(client):
+    """Test that /view/<name> generates an on-demand signed URL and redirects to it."""
+    mock_supabase = MagicMock()
+    mock_bucket = MagicMock()
+    mock_supabase.storage.from_.return_value = mock_bucket
+    mock_bucket.create_signed_url.return_value = {
+        "signedURL": "https://storage.supabase.co/preview/my_document.pdf?token=secret123"
+    }
+
+    with patch("app.get_supabase_client", return_value=mock_supabase):
+        response = client.get("/view/my_document.pdf")
+        assert response.status_code == 302
+        assert "https://storage.supabase.co/preview/my_document.pdf?token=secret123" in response.headers["Location"]
+
+
+

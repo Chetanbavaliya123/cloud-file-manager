@@ -94,7 +94,8 @@ graph TD
 
 | Method | Endpoint | Description | Response |
 | :---: | :--- | :--- | :--- |
-| `GET` | `/` | Web dashboard: lists files, computes sizes, and builds signed download links | HTML (`index.html`) |
+| `GET` | `/` | Web dashboard: lists files, computes sizes, and builds signed view & download links | HTML (`index.html`) |
+| `GET` | `/view/<path:name>` | Generates signed URL and redirects to view/preview file inline | `302 Redirect` to Signed URL |
 | `POST` | `/upload` | Uploads file to Supabase Storage with MIME detection and upsert enabled | `302 Redirect` to `/` |
 | `GET` | `/delete/<path:name>` | Deletes the specified file from Supabase Storage | `302 Redirect` to `/` |
 | `GET` | `/health` | Health check probe for uptime monitoring and deployment status | `200 OK` JSON |
