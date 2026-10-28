@@ -16,7 +16,7 @@ This document details the complete cloud architecture, infrastructure configurat
 | **Secrets Management** | Zero secrets in source control. Environment variables injected via Render Dashboard (`sync: false` in `render.yaml`) and local `.env` (git-ignored). |
 | **Deployment Method** | Continuous Deployment (CI/CD) via GitHub Integration: Render automatically detects pushes to `main` branch, executes build commands, and triggers zero-downtime deployment. |
 | **Web Server** | **Gunicorn 26.x** (WSGI HTTP Server for UNIX) serving Flask application: `gunicorn app:app` |
-| **Public URL** | `https://cloud-file-manager-xxxx.onrender.com` *(Updated upon deployment)* |
+| **Public URL** | [https://cloud-file-manager-alml.onrender.com](https://cloud-file-manager-alml.onrender.com) |
 | **HTTPS / TLS** | Automatically provisioned and renewed SSL/TLS certificates via **Let's Encrypt**, managed natively by Render Edge router. |
 | **Resource Management** | <ul><li>**Upload Limit**: 10 MB per-file maximum, strictly enforced in Flask (`MAX_CONTENT_LENGTH = 10 * 1024 * 1024`) and browser JavaScript before transmission.</li><li>**Auto-Sleep Policy**: Render Free instance sleeps after 15 minutes of inactivity; spins up automatically upon incoming HTTP request.</li><li>**Monitoring**: Live CPU/Memory telemetry available under Render **Metrics** tab; application access logs under **Logs** tab.</li><li>**Storage Quota Monitoring**: Available via Supabase **Project Settings > Usage & Storage** (1 GB limit).</li></ul> |
 | **Total Infrastructure Cost** | **$0.00 / Month** (100% Free Tier, zero credit card requirement) |

@@ -50,7 +50,7 @@ app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 Megabytes
 # Cloud Configuration from Environment Variables
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "").strip()
-BUCKET_NAME = os.environ.get("BUCKET_NAME", "uploads").strip()
+BUCKET_NAME = os.environ.get("BUCKET_NAME", "uploads").strip().strip("'\"")
 PORT = int(os.environ.get("PORT", 5000))
 
 # Setup application logger
@@ -58,17 +58,35 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("cloud-file-manager")
 
 
+def get_clean_supabase_url(raw_url: str) -> str:
+    """
+    Sanitizes SUPABASE_URL to scheme://netloc (e.g. https://xyz.supabase.co).
+    Removes accidental paths like '/rest/v1' or trailing slashes that can cause
+    PGRST125 PostgREST routing conflicts with Supabase Storage.
+    """
+    if not raw_url:
+        return ""
+    from urllib.parse import urlparse
+    clean = raw_url.strip().strip("'\"")
+    parsed = urlparse(clean)
+    if parsed.scheme and parsed.netloc:
+        return f"{parsed.scheme}://{parsed.netloc}"
+    return clean.rstrip("/")
+
+
 def get_supabase_client():
     """
     Initializes and returns a Supabase client.
     Returns None if environment variables are not configured.
     """
-    if not SUPABASE_URL or not SUPABASE_KEY:
+    clean_url = get_clean_supabase_url(SUPABASE_URL)
+    clean_key = SUPABASE_KEY.strip().strip("'\"")
+    if not clean_url or not clean_key:
         logger.warning("Supabase credentials not configured in environment.")
         return None
     try:
         from supabase import create_client
-        return create_client(SUPABASE_URL, SUPABASE_KEY)
+        return create_client(clean_url, clean_key)
     except Exception as exc:
         logger.error(f"Error initializing Supabase client: {exc}")
         return None
@@ -122,11 +140,12 @@ def health():
     Health check endpoint for Render monitoring and uptime checks.
     Returns JSON status.
     """
+    clean_url = get_clean_supabase_url(SUPABASE_URL)
     return jsonify({
         "status": "ok",
         "service": "cloud-file-manager",
         "bucket": BUCKET_NAME,
-        "configured": bool(SUPABASE_URL and SUPABASE_KEY)
+        "configured": bool(clean_url and SUPABASE_KEY)
     }), 200
 
 

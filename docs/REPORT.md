@@ -183,9 +183,11 @@ The **Cloud File Manager** project successfully demonstrates the deployment and 
 *(Screenshots will be attached upon deployment according to `docs/SCREENSHOT_CHECKLIST.md`)*
 
 ### Screenshot 1: Running Web Application
+> **Live URL:** `https://cloud-file-manager-alml.onrender.com`  
+> **Hosting Region:** Singapore (Southeast Asia)  
 > **Description:** Shows the web browser displaying the live Cloud File Manager application on Render with the public URL bar visible, header tagline showing compute/storage metadata, uploaded files list, and download/delete action buttons.  
 ```text
-[ INSERT SCREENSHOT 1 HERE: Live Application in Browser ]
+[ INSERT SCREENSHOT 1 HERE: Live Application at https://cloud-file-manager-alml.onrender.com ]
 ```
 
 ### Screenshot 2: Supabase Storage Dashboard
