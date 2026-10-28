@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud File Manager | Render & Supabase</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%22 100 100%22><text y=%22.9em%22 font-size=%2290%22>☁️</text></svg>">
+    <style>
+        :root {
+            --primary: #059669;
+            --primary-hover: #047857;
+            --primary-light: #ecfdf5;
+            --primary-ring: rgba(5, 150, 105, 0.25);
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f2722 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-border: rgba(226, 232, 240, 0.8);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-sub: #475569;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --danger-light: #fef2f2;
+            --warning: #d97706;
+            --warning-light: #fffbeb;
+            --success: #16a34a;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.15);
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-main);
+            padding: 32px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        /* Header section */
+        .app-header {
+            text-align: center;
+            margin-bottom: 28px;
+            color: #ffffff;
+        }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #6ee7b7;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            backdrop-filter: blur(8px);
+        }
+
+        .brand-badge svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .app-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            color: #ffffff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .app-header .tagline-bar {
+            display: inline-flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 8px 18px;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            color: #cbd5e1;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12px);
+        }
+
+        .tagline-bar .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tagline-bar .pill-highlight {
+            color: #34d399;
+            font-weight: 600;
+        }
+
+        .tagline-bar .divider {
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Flash messages */
+        .alerts {
+            margin-bottom: 24px;
+        }
+
+        .alert {
+            padding: 14px 18px;
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.95rem;
+            font-weight: 500;
+            box-shadow: var(--shadow-sm);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .alert-success {
+            background-color: var(--primary-light);
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+        }
+
+        .alert-error, .alert-danger {
+            background-color: var(--danger-light);
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        .alert-warning {
+            background-color: var(--warning-light);
+            border: 1px solid #fde68a;
+            color: #92400e;
+        }
+
+        .alert-close {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: inherit;
+            cursor: pointer;
+            opacity: 0.7;
+            padding-left: 12px;
+        }
+
+        .alert-close:hover {
+            opacity: 1;
+        }
+
+        /* Card layout */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: 28px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(16px);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title svg {
+            width: 22px;
+            height: 22px;
+            color: var(--primary);
+        }
+
+        /* Upload Area */
+        .upload-dropzone {
+            border: 2px dashed #cbd5e1;
+            border-radius: var(--radius-md);
+            padding: 32px 20px;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .upload-dropzone:hover, .upload-dropzone.dragover {
+            border-color: var(--primary);
+            background: #f0fdf4;
+            transform: translateY(-1px);
+        }
+
+        .upload-dropzone input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .dropzone-icon {
+            width: 48px;
+            height: 48px;
+            color: var(--primary);
+            margin-bottom: 12px;
+        }
+
+        .dropzone-text {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+
+        .dropzone-hint {
+            font-size: 0.825rem;
+            color: var(--text-muted);
+        }
+
+        .file-selected-info {
+            display: none;
+            margin-top: 14px;
+            padding: 10px 14px;
+            background: #ffffff;
+            border: 1px solid #d1fae5;
+            border-radius: var(--radius-md);
+            color: #065f46;
+            font-size: 0.9rem;
+            font-weight: 600;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .upload-actions {
+            margin-top: 18px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            font-size: 0.925rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: #ffffff;
+            box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(5, 150, 105, 0.3);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.825rem;
+            border-radius: 6px;
+        }
+
+        .btn-download {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border: 1px solid #a7f3d0;
+        }
+
+        .btn-download:hover {
+            background-color: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        .btn-delete {
+            background-color: var(--danger-light);
+            color: var(--danger);
+            border: 1px solid #fecaca;
+        }
+
+        .btn-delete:hover {
+            background-color: var(--danger);
+            color: #ffffff;
+            border-color: var(--danger);
+        }
+
+        /* Files Table */
+        .table-responsive {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        table.files-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        table.files-table th {
+            padding: 12px 16px;
+            background: #f8fafc;
+            color: var(--text-sub);
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        table.files-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            color: var(--text-main);
+            font-size: 0.925rem;
+            vertical-align: middle;
+        }
+
+        table.files-table tr:hover td {
+            background-color: #f8fafc;
+        }
+
+        .file-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            color: var(--text-main);
+            word-break: break-all;
+        }
+
+        .file-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: #e0f2fe;
+            color: #0284c7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1rem;
+        }
+
+        .size-badge {
+            display: inline-block;
+            background: #f1f5f9;
+            color: #475569;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .actions-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+
+        .empty-state h3 {
+            font-size: 1.15rem;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+
+        .empty-state p {
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        .app-footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 24px 0 12px;
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .app-footer a {
+            color: #34d399;
+            text-decoration: none;
+        }
+
+        .app-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .health-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 6px;
+            color: #6ee7b7;
+            font-size: 0.775rem;
+        }
+
+        .health-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #10b981;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 640px) {
+            .app-header h1 {
+                font-size: 1.85rem;
+            }
+            .tagline-bar {
+                font-size: 0.775rem;
+                padding: 8px 12px;
+            }
+            .card {
+                padding: 18px;
+            }
+            table.files-table th:nth-child(3),
+            table.files-table td:nth-child(3) {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="brand-badge">
+                <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                Cloud Computing Assignment
+            </div>
+            <h1>
+                ☁️ Cloud File Manager
+            </h1>
+            <div class="tagline-bar">
+                Compute: Render Web Service | Storage: Supabase Storage | Bucket: {{ bucket_name }} | Files: {{ files|length }}
+            </div>
+        </header>
+
+        <!-- Flash alerts -->
+        <div class="alerts">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            <span>{{ message }}</span>
+                            <button class="alert-close" onclick="this.parentElement.remove();">&times;</button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% if error_banner %}
+                <div class="alert alert-warning">
+                    <span>⚠️ <strong>Configuration Alert:</strong> {{ error_banner }}</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Upload Card -->
+        <section class="card">
+            <h2 class="card-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                Upload File to Cloud Storage
+            </h2>
+            <form id="uploadForm" action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data">
+                <div class="upload-dropzone" id="dropzone">
+                    <input type="file" name="file" id="fileInput" required>
+                    <svg class="dropzone-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                    <div class="dropzone-text" id="dropzoneText">Drag and drop your file here, or click to browse</div>
+                    <div class="dropzone-hint">Enforced limit: Max 10 MB per file &bull; Direct upload to private Supabase bucket</div>
+                </div>
+                <div class="file-selected-info" id="fileInfo">
+                    <span id="selectedFileName">📄 Selected: none</span>
+                    <span id="selectedFileSize" style="font-family: monospace;">0 KB</span>
+                </div>
+                <div class="upload-actions">
+                    <button type="submit" class="btn btn-primary" id="uploadBtn">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                        Upload to Supabase
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Stored Files Card -->
+        <section class="card">
+            <h2 class="card-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                Stored Files ({{ files|length }})
+            </h2>
+
+            {% if files and files|length > 0 %}
+                <div class="table-responsive">
+                    <table class="files-table">
+                        <thead>
+                            <tr>
+                                <th>File Name</th>
+                                <th>Size (KB)</th>
+                                <th>Created</th>
+                                <th style="text-align: right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for f in files %}
+                            <tr>
+                                <td>
+                                    <div class="file-cell">
+                                        <div class="file-icon">{{ f.icon }}</div>
+                                        <span title="{{ f.name }}">{{ f.name }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="size-badge">{{ f.size_kb }} KB</span>
+                                </td>
+                                <td style="color: var(--text-muted); font-size: 0.85rem;">
+                                    {{ f.created_at }}
+                                </td>
+                                <td>
+                                    <div class="actions-cell">
+                                        {% if f.download_url %}
+                                            <a href="{{ f.download_url }}" class="btn btn-sm btn-download" target="_blank" rel="noopener noreferrer" title="Download via Signed URL (valid 1 hr)">
+                                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                Download
+                                            </a>
+                                        {% endif %}
+                                        <a href="{{ url_for('delete_file', name=f.encoded_name) }}" class="btn btn-sm btn-delete" onclick="return confirm('Are you sure you want to delete file \'{{ f.name }}\'?');" title="Permanently delete file">
+                                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            Delete
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📂</div>
+                    <h3>No files stored in bucket</h3>
+                    <p>Upload a file above to store it securely in Supabase Storage.</p>
+                </div>
+            {% endif %}
+        </section>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>Cloud Computing Assignment Project &bull; Built with Flask, Supabase & Render</p>
+            <div class="health-indicator">
+                <span class="health-dot"></span>
+                <span>System status: <a href="{{ url_for('health') }}" target="_blank">Health Check (/health)</a></span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const dropzone = document.getElementById('dropzone');
+        const fileInfo = document.getElementById('fileInfo');
+        const selectedFileName = document.getElementById('selectedFileName');
+        const selectedFileSize = document.getElementById('selectedFileSize');
+        const uploadBtn = document.getElementById('uploadBtn');
+
+        fileInput.addEventListener('change', function(e) {
+            if (this.files && this.files.length > 0) {
+                const file = this.files[0];
+                const sizeKb = (file.size / 1024).toFixed(1);
+                selectedFileName.textContent = '📄 ' + file.name;
+                selectedFileSize.textContent = sizeKb + ' KB';
+                fileInfo.style.display = 'flex';
+
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('Warning: File size (' + sizeKb + ' KB) exceeds the 10 MB limit!');
+                    uploadBtn.disabled = true;
+                } else {
+                    uploadBtn.disabled = false;
+                }
+            } else {
+                fileInfo.style.display = 'none';
+            }
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.add('dragover');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.remove('dragover');
+            }, false);
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', function() {
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '⏳ Uploading...';
+        });
+    </script>
+</body>
+</html>
