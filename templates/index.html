@@ -486,6 +486,87 @@
                 display: none;
             }
         }
+
+        /* Custom Confirmation Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 16px;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .modal-card {
+            background: #ffffff;
+            border-radius: 16px;
+            max-width: 440px;
+            width: 100%;
+            padding: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            text-align: center;
+            transform: translateY(0);
+        }
+
+        .modal-icon {
+            width: 56px;
+            height: 56px;
+            background: #fee2e2;
+            color: #dc2626;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin: 0 auto 16px;
+        }
+
+        .modal-card h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        .modal-card p {
+            font-size: 0.95rem;
+            color: #475569;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .modal-filename {
+            background: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-weight: 600;
+            color: #0f172a;
+            word-break: break-all;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
     </style>
 </head>
 <body>
@@ -591,7 +672,7 @@
                                                 Download
                                             </a>
                                         {% endif %}
-                                        <a href="{{ url_for('delete_file', name=f.encoded_name) }}" class="btn btn-sm btn-delete" onclick="return confirm('Are you sure you want to delete file \'{{ f.name }}\'?');" title="Permanently delete file">
+                                        <a href="{{ url_for('delete_file', name=f.encoded_name) }}" class="btn btn-sm btn-delete" onclick="return confirmDelete(event, '{{ f.name|e }}', '{{ url_for('delete_file', name=f.encoded_name) }}');" title="Permanently delete file">
                                             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                             Delete
                                         </a>
@@ -621,6 +702,21 @@
         </footer>
     </div>
 
+    <!-- Custom Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-icon">🗑️</div>
+            <h3>Delete File</h3>
+            <p>Are you sure you want to permanently delete <br><span class="modal-filename" id="modalFileName"></span> from Supabase Storage?</p>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <a id="modalConfirmDeleteBtn" href="#" class="btn btn-delete" onclick="handleDeleteClick(this)">
+                    Yes, Delete File
+                </a>
+            </div>
+        </div>
+    </div>
+
     <script>
         const fileInput = document.getElementById('fileInput');
         const dropzone = document.getElementById('dropzone');
@@ -628,6 +724,29 @@
         const selectedFileName = document.getElementById('selectedFileName');
         const selectedFileSize = document.getElementById('selectedFileSize');
         const uploadBtn = document.getElementById('uploadBtn');
+
+        function confirmDelete(e, filename, deleteUrl) {
+            if (e) e.preventDefault();
+            document.getElementById('modalFileName').textContent = filename;
+            document.getElementById('modalConfirmDeleteBtn').href = deleteUrl;
+            document.getElementById('deleteModal').style.display = 'flex';
+            return false;
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+        }
+
+        function handleDeleteClick(btn) {
+            btn.innerHTML = '⏳ Deleting...';
+            btn.style.pointerEvents = 'none';
+        }
+
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteModal();
+            }
+        });
 
         fileInput.addEventListener('change', function(e) {
             if (this.files && this.files.length > 0) {

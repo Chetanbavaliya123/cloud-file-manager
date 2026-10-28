@@ -299,7 +299,7 @@ def delete_file(name):
         flash("Cannot delete: Supabase credentials are not configured.", "error")
         return redirect(url_for("index"))
 
-    decoded_name = unquote(name)
+    decoded_name = unquote(name).strip().lstrip("/")
 
     try:
         bucket = supabase.storage.from_(BUCKET_NAME)
