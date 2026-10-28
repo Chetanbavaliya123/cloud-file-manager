@@ -1,25 +1,27 @@
 """
-Converts docs/REPORT.md into a beautifully formatted PDF report
+Converts Markdown reports in docs/ into beautifully formatted PDF documents
 using python-markdown and headless Microsoft Edge / Google Chrome.
 """
 
 import os
+import sys
 import subprocess
 import markdown
 
-REPORT_MD_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "REPORT.md"))
-HTML_OUT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "report_preview.html"))
-PDF_OUT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "REPORT.pdf"))
+DOCS_DIR = os.path.dirname(os.path.abspath(__file__))
 
-def build_pdf():
-    if not os.path.exists(REPORT_MD_PATH):
-        print(f"Error: {REPORT_MD_PATH} not found.")
+def convert_md_to_pdf(md_filename, pdf_filename):
+    md_path = os.path.join(DOCS_DIR, md_filename)
+    pdf_path = os.path.join(DOCS_DIR, pdf_filename)
+    html_preview_path = os.path.join(DOCS_DIR, f"temp_{os.path.splitext(md_filename)[0]}.html")
+
+    if not os.path.exists(md_path):
+        print(f"Error: {md_path} not found.")
         return False
 
-    with open(REPORT_MD_PATH, "r", encoding="utf-8") as f:
+    with open(md_path, "r", encoding="utf-8") as f:
         md_text = f.read()
 
-    # Convert markdown to HTML with tables, code fences, etc.
     html_content = markdown.markdown(
         md_text,
         extensions=["tables", "fenced_code", "nl2br", "sane_lists"]
@@ -29,25 +31,22 @@ def build_pdf():
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Cloud Computing Assignment Report</title>
+    <title>{os.path.splitext(pdf_filename)[0]}</title>
     <style>
         @page {{
             size: A4;
-            margin: 20mm 15mm 20mm 15mm;
-            @bottom-right {{
-                content: counter(page);
-            }}
+            margin: 18mm 14mm 18mm 14mm;
         }}
         body {{
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            color: #1e293b;
-            line-height: 1.6;
-            font-size: 11pt;
+            color: #0f172a;
+            line-height: 1.55;
+            font-size: 10.5pt;
             padding: 10px;
         }}
         h1 {{
             color: #047857;
-            font-size: 18pt;
+            font-size: 17pt;
             border-bottom: 2px solid #059669;
             padding-bottom: 6px;
             margin-top: 0;
@@ -55,7 +54,7 @@ def build_pdf():
         }}
         h2 {{
             color: #065f46;
-            font-size: 14pt;
+            font-size: 13pt;
             margin-top: 18px;
             margin-bottom: 8px;
             border-bottom: 1px solid #e2e8f0;
@@ -63,25 +62,19 @@ def build_pdf():
         }}
         h3 {{
             color: #1e293b;
-            font-size: 12pt;
-            margin-top: 14px;
+            font-size: 11pt;
+            margin-top: 12px;
             margin-bottom: 6px;
-        }}
-        hr {{
-            border: 0;
-            height: 1px;
-            background: #cbd5e1;
-            margin: 16px 0;
         }}
         table {{
             width: 100%;
             border-collapse: collapse;
-            margin: 14px 0;
-            font-size: 9.5pt;
+            margin: 12px 0;
+            font-size: 9pt;
         }}
         table th, table td {{
             border: 1px solid #cbd5e1;
-            padding: 8px 10px;
+            padding: 6px 8px;
             text-align: left;
         }}
         table th {{
@@ -96,14 +89,14 @@ def build_pdf():
             font-family: Consolas, "Courier New", monospace;
             background-color: #f1f5f9;
             border-radius: 4px;
-            font-size: 9pt;
+            font-size: 8.5pt;
         }}
         code {{
-            padding: 2px 5px;
+            padding: 2px 4px;
             color: #0f172a;
         }}
         pre {{
-            padding: 12px;
+            padding: 10px;
             overflow-x: auto;
             border: 1px solid #e2e8f0;
             line-height: 1.4;
@@ -111,26 +104,25 @@ def build_pdf():
         }}
         blockquote {{
             border-left: 4px solid #059669;
-            margin: 12px 0;
-            padding: 6px 14px;
+            margin: 10px 0;
+            padding: 6px 12px;
             background-color: #ecfdf5;
             color: #065f46;
-            font-size: 10pt;
+            font-size: 9.5pt;
+        }}
+        img {{
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin: 10px 0;
         }}
         ul, ol {{
-            padding-left: 24px;
-            margin: 8px 0;
+            padding-left: 20px;
+            margin: 6px 0;
         }}
         li {{
-            margin-bottom: 4px;
-        }}
-        .header-box {{
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 12px 16px;
-            margin-bottom: 20px;
-            text-align: center;
+            margin-bottom: 3px;
         }}
     </style>
 </head>
@@ -140,11 +132,9 @@ def build_pdf():
 </html>
 """
 
-    with open(HTML_OUT_PATH, "w", encoding="utf-8") as f:
+    with open(html_preview_path, "w", encoding="utf-8") as f:
         f.write(styled_html)
-    print(f"Generated HTML preview at: {HTML_OUT_PATH}")
 
-    # Look for Edge or Chrome
     browser_candidates = [
         r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
         r"C:\Program Files\Google\Chrome\Application\chrome.exe",
@@ -157,7 +147,7 @@ def build_pdf():
             break
 
     if not browser_exe:
-        print("Warning: Neither Edge nor Chrome found for headless PDF generation.")
+        print("Warning: Neither Edge nor Chrome found.")
         return False
 
     cmd = [
@@ -165,18 +155,21 @@ def build_pdf():
         "--headless",
         "--disable-gpu",
         "--no-pdf-header-footer",
-        f"--print-to-pdf={PDF_OUT_PATH}",
-        HTML_OUT_PATH
+        f"--print-to-pdf={pdf_path}",
+        html_preview_path
     ]
 
-    print(f"Running headless browser: {browser_exe} to produce PDF...")
-    res = subprocess.run(cmd, capture_output=True, text=True)
-    if os.path.exists(PDF_OUT_PATH) and os.path.getsize(PDF_OUT_PATH) > 0:
-        print(f"Successfully generated PDF: {PDF_OUT_PATH} ({os.path.getsize(PDF_OUT_PATH)} bytes)")
+    subprocess.run(cmd, capture_output=True, text=True)
+    if os.path.exists(html_preview_path):
+        os.remove(html_preview_path)
+
+    if os.path.exists(pdf_path) and os.path.getsize(pdf_path) > 0:
+        print(f"[SUCCESS] Generated: {pdf_filename} ({os.path.getsize(pdf_path)} bytes)")
         return True
     else:
-        print(f"PDF generation failed: {res.stderr}")
+        print(f"[ERROR] Failed: {pdf_filename}")
         return False
 
 if __name__ == "__main__":
-    build_pdf()
+    convert_md_to_pdf("REPORT.md", "REPORT.pdf")
+    convert_md_to_pdf("PROJECT_COMPLETE_REPORT.md", "PROJECT_COMPLETE_REPORT.pdf")
