@@ -186,30 +186,32 @@ The **Cloud File Manager** project successfully demonstrates the deployment and 
 > **Live URL:** `https://cloud-file-manager-alml.onrender.com`  
 > **Hosting Region:** Singapore (Southeast Asia)  
 > **Description:** Shows the web browser displaying the live Cloud File Manager application on Render with the public URL bar visible, header tagline showing compute/storage metadata, uploaded files list, and download/delete action buttons.  
-```text
-[ INSERT SCREENSHOT 1 HERE: Live Application at https://cloud-file-manager-alml.onrender.com ]
-```
+
+![Screenshot 1: Live Cloud File Manager Application](screenshots/screenshot_1_live_app.png)
 
 ### Screenshot 2: Supabase Storage Dashboard
 > **Description:** Shows the Supabase Cloud dashboard displaying the private `uploads` storage bucket containing the uploaded files with matching file sizes and timestamps.  
+
 ```text
-[ INSERT SCREENSHOT 2 HERE: Supabase Private Bucket View ]
+[ Attach Screenshot 2: Save as docs/screenshots/screenshot_2_supabase_bucket.png ]
 ```
 
 ### Screenshot 3: Render Web Service Dashboard
 > **Description:** Shows the Render dashboard displaying the `cloud-file-manager` Web Service with `Live` status, `Singapore` region, `Free` instance tier, and recent commit hash.  
+
 ```text
-[ INSERT SCREENSHOT 3 HERE: Render Service Live Dashboard ]
+[ Attach Screenshot 3: Save as docs/screenshots/screenshot_3_render_live.png ]
 ```
 
 ### Screenshot 4: Render Metrics / Logs Telemetry
 > **Description:** Shows the Render `Logs` and `Metrics` tab confirming successful HTTP requests (200 OK, 302 redirects) and healthy memory/CPU consumption.  
+
 ```text
-[ INSERT SCREENSHOT 4 HERE: Render Logs / Telemetry ]
+[ Attach Screenshot 4: Save as docs/screenshots/screenshot_4_render_logs.png ]
 ```
 
 ### Screenshot 5: GitHub Repository & CI/CD
-> **Description:** Shows the public GitHub repository `cloud-file-manager` containing the complete codebase, commit history, and Render deployment webhook badge.  
-```text
-[ INSERT SCREENSHOT 5 HERE: GitHub Repository Page ]
-```
+> **Repository:** `https://github.com/Chetanbavaliya123/cloud-file-manager`  
+> **Description:** Shows the public GitHub repository `cloud-file-manager` containing the complete codebase, commit history, and Render deployment webhook configuration.  
+
+![Screenshot 5: GitHub Repository](screenshots/screenshot_5_github_repo.png)
